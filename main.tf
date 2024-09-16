@@ -1,7 +1,6 @@
 /* There are more properties that can be configured,
  e.g. VPC endpoints, network ACLs, DHCP options, etc. */
 
-
 terraform {
   required_providers {
     aws = {
