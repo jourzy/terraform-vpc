@@ -27,7 +27,7 @@ resource "aws_vpc" "this" {
  enable_dns_support = true
  
  tags = {
-   Name = "Project VPC"
+   Name = "Project"
  }
 }
 
@@ -52,7 +52,7 @@ resource "aws_subnet" "public" {
  tags = {
   // The Name tag here is dynamic. 
   // For each subnet, it creates a name like "Private Subnet 1", "Private Subnet 2", etc.
-   Name = "Public Subnet ${count.index + 1}"
+   Name = "Public-${count.index + 1}"
  }
 }
  
@@ -64,7 +64,7 @@ resource "aws_subnet" "private" {
  availability_zone = element(var.azs, count.index)
  
  tags = {
-   Name = "Private Subnet ${count.index + 1}"
+   Name = "Private-${count.index + 1}"
  }
 }
 
@@ -73,7 +73,7 @@ resource "aws_internet_gateway" "this" {
  vpc_id = aws_vpc.this.id
  
  tags = {
-   Name = "Project VPC Internet Gateway"
+   Name = "Project"
  }
 }
 
@@ -89,7 +89,7 @@ resource "aws_route_table" "second" {
  }
  
  tags = {
-   Name = "2nd Route Table"
+   Name = "Project 2nd"
  }
 }
 
