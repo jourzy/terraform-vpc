@@ -17,7 +17,7 @@ provider "aws" {
 }
 
 // Creates a VPC with CIDR range
-resource "aws_vpc" "this" {
+resource "aws_vpc" "main" {
  cidr_block = var.cidr_block_vpc
  /* This enables DNS resolution within the VPC.
  If set to true, the VPC will use Amazon's DNS server to resolve domain names to IP addresses. */
@@ -27,7 +27,7 @@ resource "aws_vpc" "this" {
  enable_dns_support = true
  
  tags = {
-   Name = "Project"
+   Name = "Project VPC"
  }
 }
 
@@ -37,7 +37,7 @@ resource "aws_subnet" "public" {
    based on the length of the var.private_subnet_cidrs variable */
  count      = length(var.public_subnet_cidrs)
  // Assigns the subnet to the existing VPC by referencing the id of an AWS VPC resource
- vpc_id     = aws_vpc.this.id
+ vpc_id     = aws_vpc.main.id
  /* var.public_subnet_cidrs is a list of CIDR blocks for private subnets, 
   defined in variables.tf
   This assigns a CIDR block to each subnet from the public_subnet_cidrs list, one for each subnet.
@@ -52,49 +52,49 @@ resource "aws_subnet" "public" {
  tags = {
   // The Name tag here is dynamic. 
   // For each subnet, it creates a name like "Private Subnet 1", "Private Subnet 2", etc.
-   Name = "Public-${count.index + 1}"
+   Name = "Project subnet public ${count.index + 1}"
  }
 }
  
 // Same as previous resource but for private subnets instead of public
 resource "aws_subnet" "private" {
  count      = length(var.private_subnet_cidrs)
- vpc_id     = aws_vpc.this.id
+ vpc_id     = aws_vpc.main.id
  cidr_block = element(var.private_subnet_cidrs, count.index)
  availability_zone = element(var.azs, count.index)
  
  tags = {
-   Name = "Private-${count.index + 1}"
+   Name = "Project subnet private ${count.index + 1}"
  }
 }
 
 // Creating an internet gateway resource
-resource "aws_internet_gateway" "this" {
- vpc_id = aws_vpc.this.id
+resource "aws_internet_gateway" "main" {
+ vpc_id = aws_vpc.main.id
  
  tags = {
-   Name = "Project"
+   Name = "Project internet gateway"
  }
 }
 
 /* Creating a route table which uses the existing 
- internet gateway so that traffic from the internet to access the public subnets.
+ internet gateway so that traffic from the internet can access the public subnets.
  Best practise is to leave the default route table alone and create a second route table for this purpose */
 resource "aws_route_table" "second" {
- vpc_id = aws_vpc.this.id
+ vpc_id = aws_vpc.main.id
  
  route {
    cidr_block = "0.0.0.0/0"
-   gateway_id = aws_internet_gateway.this.id
+   gateway_id = aws_internet_gateway.main.id
  }
  
  tags = {
-   Name = "Project 2nd"
+   Name = "Project 2nd route table"
  }
 }
 
 // Explicitly associate the public subnets with the second route table
-resource "aws_route_table_association" "this" {
+resource "aws_route_table_association" "public" {
  count = length(var.public_subnet_cidrs)
  /* Dynamic Subnet IDs: The subnet ID for each association is selected dynamically
   based on the iteration (count.index) and the list of subnet IDs (aws_subnet.public_subnets[*].id). */
