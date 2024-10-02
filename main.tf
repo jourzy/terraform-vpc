@@ -31,22 +31,18 @@ resource "aws_vpc" "main" {
  }
 }
 
-// Creates public subnets
+// Creates multiple public subnets
 resource "aws_subnet" "public" {
   /* The count parameter is used to create multiple instances of this resource 
    based on the length of the var.private_subnet_cidrs variable */
  count      = length(var.public_subnet_cidrs)
  // Assigns the subnet to the existing VPC by referencing the id of an AWS VPC resource
  vpc_id     = aws_vpc.main.id
- /* var.public_subnet_cidrs is a list of CIDR blocks for private subnets, 
-  defined in variables.tf
-  This assigns a CIDR block to each subnet from the public_subnet_cidrs list, one for each subnet.
+ /* Assigns a CIDR block to each subnet from the public_subnet_cidrs variable list.
   element(var.public_subnet_cidrs, count.index) is a function that selects an element from 
-  the public_subnet_cidrs list based on the current count.index.
- cidr_block = element(var.public_subnet_cidrs, count.index) 
-  Using the avz variable to map the subnets across these availability zones
- availability_zone = element(var.azs, count.index) */
+  the public_subnet_cidrs list based on the current count.index.*/
  cidr_block = element(var.public_subnet_cidrs, count.index)
+ // Using the azs variable to map the subnets across these availability zones
  availability_zone = element(var.azs, count.index)
  
  tags = {
